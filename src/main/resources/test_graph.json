@@ -1,0 +1,10 @@
+{
+  "directed": true,
+  "n": 3,
+  "edges": [
+    {"u":0,"v":1,"w":5},
+    {"u":1,"v":2,"w":3}
+  ],
+  "source": 0,
+  "weight_model": "edge"
+}

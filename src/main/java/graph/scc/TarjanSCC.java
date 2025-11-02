@@ -14,22 +14,27 @@ public class TarjanSCC {
     private final Deque<Integer> stack = new ArrayDeque<>();
     private final List<List<Integer>> sccList = new ArrayList<>();
 
+    // Конструктор принимает граф в виде Map и количество вершин
     public TarjanSCC(Map<Integer, List<Integer>> graph, int n) {
         this.graph = graph;
         this.n = n;
-        disc = new int[n];
-        low = new int[n];
-        onStack = new boolean[n];
-        Arrays.fill(disc, -1);
+        this.disc = new int[n];
+        this.low = new int[n];
+        this.onStack = new boolean[n];
+        Arrays.fill(disc, -1);  // Изначально все вершины не посещены
     }
 
+    // Основной метод для нахождения всех SCC
     public List<List<Integer>> findSCCs() {
         for (int i = 0; i < n; i++) {
-            if (disc[i] == -1) dfs(i);
+            if (disc[i] == -1) {
+                dfs(i);
+            }
         }
         return sccList;
     }
 
+    // DFS с вычислением low-link значений
     private void dfs(int u) {
         disc[u] = low[u] = ++time;
         stack.push(u);
@@ -44,6 +49,7 @@ public class TarjanSCC {
             }
         }
 
+        // Если вершина u является корнем SCC
         if (low[u] == disc[u]) {
             List<Integer> component = new ArrayList<>();
             int v;
@@ -56,4 +62,3 @@ public class TarjanSCC {
         }
     }
 }
-

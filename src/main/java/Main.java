@@ -1,6 +1,7 @@
 import graph.scc.*;
 import graph.topo.*;
 import java.util.*;
+import graph.dagsp.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -42,5 +43,25 @@ public class Main {
         }
         System.out.println("\n=== Derived Task Order ===");
         System.out.println(taskOrder);
+        // === 7. Кратчайшие и длиннейшие пути ===
+        System.out.println("\n=== Shortest paths in DAG ===");
+        var shortest = PathFinder.shortestPaths(condensed, topoOrder);
+        shortest.forEach((v, d) -> System.out.println("Comp " + v + ": " + d));
+
+        System.out.println("\n=== Longest paths in DAG ===");
+        var longest = PathFinder.longestPaths(condensed, topoOrder);
+        longest.forEach((v, d) -> System.out.println("Comp " + v + ": " + d));
+
+        // === 8. Критический путь ===
+        var critical = PathFinder.findCriticalPath(condensed, topoOrder);
+        System.out.println("\n=== Critical Path (component-level) ===");
+        System.out.println(critical);
+
+        System.out.println("\n=== Critical Path (tasks) ===");
+        List<Integer> criticalTasks = new ArrayList<>();
+        for (int comp : critical) {
+            criticalTasks.addAll(sccs.get(comp));
+        }
+        System.out.println(criticalTasks);
     }
 }

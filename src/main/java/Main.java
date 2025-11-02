@@ -1,4 +1,5 @@
 import graph.scc.*;
+import graph.topo.*;
 import java.util.*;
 
 public class Main {
@@ -17,17 +18,29 @@ public class Main {
         TarjanSCC tarjan = new TarjanSCC(graph, data.n);
         var sccs = tarjan.findSCCs();
 
-        System.out.println("Strongly Connected Components:");
+        System.out.println("=== Strongly Connected Components ===");
         for (int i = 0; i < sccs.size(); i++) {
             System.out.println("SCC " + i + ": " + sccs.get(i));
         }
 
         // 4. Конденсация
         var condensed = CondensationGraph.buildCondensation(graph, sccs);
-        System.out.println("\nCondensation graph:");
+        System.out.println("\n=== Condensation graph ===");
         for (var entry : condensed.entrySet()) {
             System.out.println(entry.getKey() + " -> " + entry.getValue());
         }
+
+        // 5. Топологическая сортировка DAG
+        System.out.println("\n=== Topological Order of Components ===");
+        var topoOrder = TopologicalSort.kahn(condensed);
+        System.out.println(topoOrder);
+
+        // 6. Развёрнутый порядок исходных задач
+        List<Integer> taskOrder = new ArrayList<>();
+        for (int comp : topoOrder) {
+            taskOrder.addAll(sccs.get(comp));
+        }
+        System.out.println("\n=== Derived Task Order ===");
+        System.out.println(taskOrder);
     }
 }
-

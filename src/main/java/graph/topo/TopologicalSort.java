@@ -1,14 +1,13 @@
 package graph.topo;
 
+import utils.metrics.Metrics;
 import java.util.*;
 
 public class TopologicalSort {
 
-    // Реализация алгоритма Кана
-    public static List<Integer> kahn(Map<Integer, List<Integer>> graph) {
+    public static List<Integer> kahn(Map<Integer, List<Integer>> graph, Metrics metrics) {
         Map<Integer, Integer> indegree = new HashMap<>();
 
-        // Подсчёт входящих рёбер
         for (var u : graph.keySet()) {
             indegree.putIfAbsent(u, 0);
             for (int v : graph.get(u)) {
@@ -24,6 +23,7 @@ public class TopologicalSort {
         List<Integer> order = new ArrayList<>();
         while (!q.isEmpty()) {
             int u = q.poll();
+            metrics.incrementKahnPop();
             order.add(u);
 
             for (int v : graph.getOrDefault(u, List.of())) {
@@ -35,4 +35,3 @@ public class TopologicalSort {
         return order;
     }
 }
-

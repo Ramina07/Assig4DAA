@@ -1,11 +1,13 @@
 package graph.scc;
 
+import utils.metrics.Metrics;
 import java.util.*;
 
 public class TarjanSCC {
 
     private final Map<Integer, List<Integer>> graph;
     private final int n;
+    private final Metrics metrics;
 
     private int time = 0;
     private final int[] disc;
@@ -14,17 +16,16 @@ public class TarjanSCC {
     private final Deque<Integer> stack = new ArrayDeque<>();
     private final List<List<Integer>> sccList = new ArrayList<>();
 
-    // Конструктор принимает граф в виде Map и количество вершин
-    public TarjanSCC(Map<Integer, List<Integer>> graph, int n) {
+    public TarjanSCC(Map<Integer, List<Integer>> graph, int n, Metrics metrics) {
         this.graph = graph;
         this.n = n;
+        this.metrics = metrics;
         this.disc = new int[n];
         this.low = new int[n];
         this.onStack = new boolean[n];
-        Arrays.fill(disc, -1);  // Изначально все вершины не посещены
+        Arrays.fill(disc, -1);
     }
 
-    // Основной метод для нахождения всех SCC
     public List<List<Integer>> findSCCs() {
         for (int i = 0; i < n; i++) {
             if (disc[i] == -1) {
@@ -34,13 +35,15 @@ public class TarjanSCC {
         return sccList;
     }
 
-    // DFS с вычислением low-link значений
     private void dfs(int u) {
+        metrics.incrementDFSVisit();
+
         disc[u] = low[u] = ++time;
         stack.push(u);
         onStack[u] = true;
 
         for (int v : graph.getOrDefault(u, List.of())) {
+            metrics.incrementDFSEdge();
             if (disc[v] == -1) {
                 dfs(v);
                 low[u] = Math.min(low[u], low[v]);
@@ -49,7 +52,6 @@ public class TarjanSCC {
             }
         }
 
-        // Если вершина u является корнем SCC
         if (low[u] == disc[u]) {
             List<Integer> component = new ArrayList<>();
             int v;

@@ -1,182 +1,148 @@
-# Smart City / Smart Campus Scheduling - Assignment 4
+# Assignment 4: Smart City / Smart Campus Scheduling
 
 ## Goal
-This project consolidates two course topics in one practical case:
+The goal of this assignment is to consolidate two course topics in one practical case:
 
-1. Strongly Connected Components (SCC) & Topological Ordering  
-2. Shortest and Longest Paths in Directed Acyclic Graphs (DAGs)  
+1. **Strongly Connected Components (SCC) & Topological Ordering**
+2. **Shortest Paths in Directed Acyclic Graphs (DAGs)**
 
-The project uses a dataset of city-service and internal analytics tasks with dependencies, some of which are cyclic (SCC detection) and others acyclic (DAG scheduling).  
-
----
-
-## 1. Dataset
-
-- **File used:** `src/main/resources/tasks_small_1.json`  
-- **Number of nodes:** 8  
-- **Number of edges:** 8 (mixed cyclic and acyclic dependencies)  
-- **Cyclic components:** present (SCCs)  
-- **Acyclic components:** DAG after SCC condensation  
+We apply these techniques to a "Smart City / Smart Campus Scheduling" scenario, where datasets represent city-service tasks (street cleaning, repairs, camera/sensor maintenance) and internal analytics subtasks.
 
 ---
 
-## 2. Strongly Connected Components (SCC)
-
-**Algorithm used:** Tarjan's algorithm  
-
-**Resulting SCCs:**
-
-| SCC ID | Nodes         | Size |
-|--------|---------------|------|
-| 0      | [3, 2, 1]     | 3    |
-| 1      | [0]           | 1    |
-| 2      | [7]           | 1    |
-| 3      | [6]           | 1    |
-| 4      | [5]           | 1    |
-| 5      | [4]           | 1    |
-
-**Metrics:**
-
-Tarjan Metrics: DFS visits=8, DFS edges=7, Kahn pops=0, relaxations=0, elapsedTime=0 ms
-
-
-
-**Explanation:**  
-Tarjan’s algorithm successfully identified all SCCs, compressing cyclic dependencies into single components for the subsequent DAG analysis.
+## Scenario
+- Each dataset contains directed task dependencies.
+- Some dependencies are cyclic → detect & compress using SCC.
+- Others are acyclic → plan optimally using DAG shortest/longest paths.
+- Tasks may have edge weights representing duration or priority.
+- Separate subtasks follow dynamic programming patterns.
 
 ---
 
-## 3. Condensation Graph (DAG of Components)
+## Implementation Overview
 
-**Condensed graph:**
+### 1. Graph Structure
+- Classes under `graph` package:
+  - `Graph` – adjacency list representation of a directed graph.
+  - `GraphUtils` – utility methods for graph construction and edge addition.
+  - `SCCFinder` – finds strongly connected components using Tarjan’s algorithm.
+  - `TopologicalSorter` – computes topological order of the condensation DAG.
+  - `DAGShortestLongestPaths` – computes single-source shortest and longest paths in DAG.
+  - `Metrics` – tracks operation counts and execution time.
 
-| Component | Adjacent Components |
-|-----------|-------------------|
-| 0         | []                |
-| 1         | [0]               |
-| 2         | []                |
-| 3         | [2]               |
-| 4         | [3]               |
-| 5         | [4]               |
-
-This DAG is acyclic, representing the task dependencies at the component level.
-
----
-
-## 4. Topological Sorting
-
-**Algorithm used:** Kahn’s algorithm  
-
-**Topological order of components:**  
-[1, 5, 0, 4, 3, 2]
-
-
-
-**Derived order of original tasks (after SCC compression):**  
-[0, 4, 3, 2, 1, 5, 6, 7]
-
-
-
-**Metrics:**
-
-Kahn Metrics: DFS visits=0, DFS edges=0, Kahn pops=6, relaxations=0, elapsedTime=0 ms
-
-
-
-**Explanation:**  
-Topological sort allows scheduling of tasks respecting dependencies. The derived order lists the original tasks in a valid sequence after collapsing cyclic dependencies.
+- Input format: JSON files stored in `/data/`
+  - Fields: `n` (vertices), `edges` (u,v,w), `directed`, `source`, `weight_model`.
 
 ---
 
-## 5. Shortest and Longest Paths in DAG
+### 2. Algorithms
 
-**Single-source shortest paths** (source: component 1):
+#### 2.1 Strongly Connected Components (SCC)
+- **Algorithm**: Tarjan’s DFS-based algorithm
+- **Input**: directed dependency graph
+- **Output**:
+  - List of SCCs
+  - Condensation graph (DAG of components)
+- **Instrumentation**:
+  - DFS visits and edges counted
 
-| Component | Distance |
-|-----------|---------|
-| 0         | 1       |
-| 1         | 0       |
-| 2         | ∞       |
-| 3         | ∞       |
-| 4         | ∞       |
-| 5         | ∞       |
+#### 2.2 Topological Sort
+- **Algorithm**: Kahn’s algorithm variant
+- **Input**: condensation DAG
+- **Output**:
+  - Topological order of components
+  - Derived order of original tasks
 
-**Longest paths**:
-
-| Component | Distance |
-|-----------|---------|
-| 0         | 1       |
-| 1         | 0       |
-| 2         | -∞      |
-| 3         | -∞      |
-| 4         | -∞      |
-| 5         | -∞      |
-
-**Metrics:**
-
-PathFinder Metrics: DFS visits=0, DFS edges=0, Kahn pops=0, relaxations=3, elapsedTime=17 ms
-
-
-**Explanation:**  
-- Shortest paths were computed using topological order traversal and edge relaxation.  
-- Longest paths were computed using similar DP over topological order.  
-- Relaxations count matches the number of updates performed.
+#### 2.3 Shortest/Longest Paths in DAG
+- **Algorithm**: Single-source shortest paths via relaxation along topological order
+- **Longest Path**: computed using negative weight inversion or max-DP
+- **Output**:
+  - Shortest distances from source
+  - Longest path (critical path) and its length
+  - One optimal path reconstruction
 
 ---
 
-## 6. Critical Path
+## Dataset Summary
 
-**Component-level critical path:**  
-[1, 0]
-
-
-
-
-**Original task-level critical path:**  
-[0, 3, 2, 1]
-
-
-
-**Explanation:**  
-The critical path represents the longest path in the DAG, identifying tasks that define the minimum project duration.  
+| Dataset | Nodes | Edges | Cyclic / DAG | Description |
+|---------|-------|-------|-------------|-------------|
+| tasks_small_1.json | 8 | 10 | Mixed | Small, 1 cycle |
+| tasks_small_2.json | 6 | 8  | Mixed | Small, simple cycle |
+| tasks_small_3.json | 9 | 12 | Mixed | Small, multiple SCCs |
+| tasks_medium_1.json | 12 | 18 | Mixed | Medium, several SCCs |
+| tasks_medium_2.json | 15 | 25 | Mixed | Medium, larger SCCs |
+| tasks_medium_3.json | 18 | 30 | Mixed | Medium, multiple DAG branches |
+| tasks_large_1.json | 18 | 30 | Mixed | Large, performance test |
+| tasks_large_2.json | 35 | 60 | DAG   | Large, dense, mostly acyclic |
+| tasks_large_3.json | 50 | 80 | DAG   | Large, performance / stress test |
 
 ---
 
-## 7. Analysis
+## Results Summary
 
-1. **SCC/Condensation:**  
-   - Detects cyclic dependencies effectively.  
-   - SCC compression ensures DAG-based scheduling is feasible.  
+### Example: tasks_small_1.json
+- Vertices: 8
+- Source: 4
+- SCCs: [[3,2,1],[0],[7],[6],[5],[4]]
+- Topological order: [1,5,0,4,3,2]
+- Shortest distances from 4: [∞,∞,6,5,0,∞,...]
+- Longest distances from 4: [-∞,-∞,6,5,0,-∞,...]
 
-2. **Topological Sort:**  
-   - Kahn’s algorithm provides a valid execution order.  
-   - Metrics show 6 pops, matching the number of components with zero indegree during execution.  
-
-3. **DAG Shortest/Longest Paths:**  
-   - Shortest paths highlight tasks reachable from the source.  
-   - Longest paths identify potential bottlenecks.  
-   - Critical path reconstruction confirms the sequence of dependent tasks that limit total completion time.
-
-4. **Performance:**  
-   - All metrics (DFS visits/edges, Kahn pops, relaxations) match expectations.  
-   - Execution time is minimal for small datasets.  
 
 ---
 
-## 8. Conclusion
-
-- **SCC detection** is essential for handling cyclic dependencies before DAG scheduling.  
-- **Topological ordering** provides a valid execution plan.  
-- **Shortest and longest path analysis** helps identify bottlenecks and optimize scheduling.  
-- Metrics allow evaluation of algorithmic performance and can be used for larger datasets.  
+## Metrics and Performance
+- SCC DFS visits / edges tracked
+- Kahn’s queue operations tracked
+- DAG shortest/longest path relaxations counted
+- Execution times measured using `System.nanoTime()`
+- Observations:
+  - Sparse graphs → faster SCC and topological sorting
+  - Dense graphs → more relaxations, longer critical path computation
+  - Number and size of SCCs significantly affect condensation graph construction
 
 ---
 
-## 9. Files
+## Code Quality
+- Modular packages: `graph`, `graph.scc`, `graph.topo`, `graph.dagsp`
+- Key algorithms documented with Javadoc
+- Unit tests cover small deterministic and edge cases (`src/test/java`)
+- JSON input files stored in `/data/`
 
-- `/src/main/java/graph/scc/` → `TarjanSCC.java`  
-- `/src/main/java/graph/topo/` → `TopologicalSort.java`  
-- `/src/main/java/graph/dagsp/` → `PathFinder.java`  
-- `/src/main/java/utils/metrics/` → `Metrics.java`  
-- `/src/main/resources/` → `tasks_small_1.json` (dataset)  
-- `/src/main/java/Main.java` → main execution file
+---
+
+## How to Run
+```bash```
+git clone <repo-url>
+cd assignment4
+mvn clean compile exec:java -Dexec.mainClass="graph.Main"
+Tests:
+
+
+mvn test
+Input JSON files located in src/main/data/
+
+Analysis & Conclusions
+SCC + Topological Sorting
+
+Efficient for compressing cyclic dependencies
+
+Provides DAG suitable for scheduling and DP-based path computations
+
+DAG Shortest / Longest Paths
+
+Single-source shortest path works for planning minimal completion times
+
+Longest path critical for scheduling tasks with maximum duration
+
+Practical Recommendations
+
+Use SCC to simplify cyclic dependencies
+
+Use topological sorting to linearize tasks
+
+Apply DAG-SP algorithms for time/resource optimization
+
+Dense graphs require careful tracking of operation counts for performance
+

@@ -112,37 +112,18 @@ We apply these techniques to a "Smart City / Smart Campus Scheduling" scenario, 
 
 ---
 
-## How to Run
-```bash```
-git clone <repo-url>
-cd assignment4
-mvn clean compile exec:java -Dexec.mainClass="graph.Main"
-Tests:
+## Analysis & Conclusions
 
+### 1. SCC + Topological Sorting
+- Efficient for compressing cyclic dependencies.  
+- Provides a DAG suitable for scheduling and DP-based path computations.
 
-mvn test
-Input JSON files located in src/main/data/
+### 2. DAG Shortest / Longest Paths
+- Single-source shortest path works for planning minimal completion times.  
+- Longest path is critical for scheduling tasks with maximum duration.
 
-Analysis & Conclusions
-SCC + Topological Sorting
-
-Efficient for compressing cyclic dependencies
-
-Provides DAG suitable for scheduling and DP-based path computations
-
-DAG Shortest / Longest Paths
-
-Single-source shortest path works for planning minimal completion times
-
-Longest path critical for scheduling tasks with maximum duration
-
-Practical Recommendations
-
-Use SCC to simplify cyclic dependencies
-
-Use topological sorting to linearize tasks
-
-Apply DAG-SP algorithms for time/resource optimization
-
-Dense graphs require careful tracking of operation counts for performance
-
+### 3. Practical Recommendations
+- Use SCC to simplify cyclic dependencies.  
+- Use topological sorting to linearize tasks.  
+- Apply DAG-SP algorithms for time/resource optimization.  
+- Dense graphs require careful tracking of operation counts for performance.
